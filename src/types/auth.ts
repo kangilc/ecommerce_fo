@@ -1,11 +1,30 @@
 export interface UserRegisterRequest {
+  name: string;
   email: string;
-  username: string;
-  password: string;
-  confirmPassword: string;
+  password?: string; // Registration usually requires a password
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
+  countryCode?: string;
+  countryName?: string;
 }
 
 export interface UserRegisterResponse {
-  success: boolean;
-  message: string;
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  country: string | null;
+  countryCode: string | null;
+  countryName: string | null;
+  buyerStatus: string;
+  success?: boolean; // Keep for internal logic if needed
+  message?: string;
 }
