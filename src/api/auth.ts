@@ -1,6 +1,11 @@
 import client from './client';
 import type { UserRegisterRequest, UserRegisterResponse } from '../types/auth';
 
+export const login = async (data: Record<string, any>): Promise<any> => {
+  const response = await client.post<any>('/auth/login', data);
+  return response.data; // 응답으로 accessToken, refreshToken, userInfo 등이 온다고 가정
+};
+
 export const register = async (data: UserRegisterRequest): Promise<UserRegisterResponse> => {
   const response = await client.post<any>('/buyers', data);
   return response.data.data;
