@@ -1,7 +1,7 @@
 export interface UserRegisterRequest {
   name: string;
   email: string;
-  password?: string; // Registration usually requires a password
+  password?: string;
   phone?: string;
   address?: string;
   city?: string;
@@ -10,6 +10,7 @@ export interface UserRegisterRequest {
   country?: string;
   countryCode?: string;
   countryName?: string;
+  buyerStatus?: string;
 }
 
 export interface UserRegisterResponse {

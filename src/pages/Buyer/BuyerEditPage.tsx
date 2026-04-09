@@ -14,6 +14,7 @@ const BuyerEditPage: React.FC = () => {
     address: '',
     city: '',
     zip: '',
+    buyerStatus: 'ACTIVE',
   });
 
   const [loading, setLoading] = useState(true);
@@ -32,6 +33,7 @@ const BuyerEditPage: React.FC = () => {
           address: data.address || '',
           city: data.city || '',
           zip: data.zip || '',
+          buyerStatus: data.buyerStatus || 'ACTIVE',
         });
       } catch (err: any) {
         setError('Failed to fetch buyer details for editing');
@@ -81,6 +83,43 @@ const BuyerEditPage: React.FC = () => {
             <label htmlFor="email">Email</label>
             <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
           </div>
+          
+          <div className="form-group">
+            <label>Buyer Status</label>
+            <div className="radio-group" style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="buyerStatus"
+                  value="ACTIVE"
+                  checked={formData.buyerStatus === 'ACTIVE'}
+                  onChange={handleChange}
+                />
+                ACTIVE
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="buyerStatus"
+                  value="INACTIVE"
+                  checked={formData.buyerStatus === 'INACTIVE'}
+                  onChange={handleChange}
+                />
+                INACTIVE
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="buyerStatus"
+                  value="BANNED"
+                  checked={formData.buyerStatus === 'BANNED'}
+                  onChange={handleChange}
+                />
+                BANNED
+              </label>
+            </div>
+          </div>
+
           <div className="form-group">
             <label htmlFor="phone">Phone</label>
             <input type="text" id="phone" name="phone" value={formData.phone} onChange={handleChange} />

@@ -2,8 +2,8 @@ import client from './client';
 import type { UserRegisterRequest, UserRegisterResponse } from '../types/auth';
 
 export const register = async (data: UserRegisterRequest): Promise<UserRegisterResponse> => {
-  const response = await client.post<UserRegisterResponse>('/buyers', data);
-  return response.data;
+  const response = await client.post<any>('/buyers', data);
+  return response.data.data;
 };
 
 export const findAll = async (): Promise<UserRegisterResponse[]> => {

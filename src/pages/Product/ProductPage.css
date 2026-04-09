@@ -1,0 +1,18 @@
+.header-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.price-tag {
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Reusing generic list/detail styles from BuyerPage.css if needed, 
+   but specific product tweaks go here */

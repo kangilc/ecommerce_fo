@@ -35,6 +35,7 @@
 
 .status.active { background: #e6fffa; color: #2c7a7b; }
 .status.inactive { background: #fff5f5; color: #c53030; }
+.status.banned { background: #2d3748; color: #fed7d7; }
 
 .view-button, .back-button {
   display: inline-block;
