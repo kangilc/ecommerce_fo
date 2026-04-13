@@ -5,7 +5,7 @@ import { setAccessToken } from '../../api/client';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ id: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,7 +17,7 @@ const LoginPage = () => {
     try {
       setError('');
       // 백엔드 명세에 맞게 파라미터를 보냄 (예: username / password)
-      const res = await login({ username: form.id, password: form.password });
+      const res = await login({ email: form.email, password: form.password });
       
       // Access Token과 Refresh Token 저장
       const accessToken = res.accessToken || res.data?.accessToken;
@@ -36,6 +36,8 @@ const LoginPage = () => {
          localStorage.setItem('user_info', JSON.stringify(userInfo));
       }
 
+      window.dispatchEvent(new Event('auth-change'));
+      
       alert('로그인 성공!');
       navigate('/'); // 홈으로 이동
     } catch (err: any) {
@@ -52,8 +54,8 @@ const LoginPage = () => {
           <label style={{ display: 'block', marginBottom: '0.5rem' }}>아이디(이메일)</label>
           <input
             type="text"
-            name="id"
-            value={form.id}
+            name="email"
+            value={form.email}
             onChange={handleChange}
             style={{ width: '100%', padding: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)' }}
             required

@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useSseListener } from './hooks/useSseListener';
+import { useState, useEffect } from 'react';
+import { forceLogout } from './api/client';
 import HomePage from './pages/Home/HomePage';
 import LoginPage from './pages/Login/LoginPage';
 import RegisterPage from './pages/Register/RegisterPage';
@@ -14,8 +16,22 @@ import ProductEditPage from './pages/Product/ProductEditPage';
 import './App.css';
 
 function App() {
-  // 앱 실행 시 SSE 리스너 마운트 (향후 인증 여부에 따라 조건부 실행 처리 가능)
-  useSseListener();
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('refresh_token'));
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setIsLoggedIn(!!localStorage.getItem('refresh_token'));
+    };
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => window.removeEventListener('auth-change', handleAuthChange);
+  }, []);
+
+  // 앱 실행 시 SSE 리스너 마운트: 로그인 상태일 때만 실제 커넥션이 맺어지도록 변경
+  useSseListener(isLoggedIn);
+
+  const handleLogoutClick = () => {
+    forceLogout();
+  };
 
   return (
     <Router>
@@ -33,8 +49,14 @@ function App() {
         <Link to="/" style={{ color: 'var(--text-h)', textDecoration: 'none', fontWeight: 'bold' }}>Store</Link>
         <Link to="/products" style={{ color: 'var(--text-h)', textDecoration: 'none' }}>Admin: Products</Link>
         <Link to="/buyers" style={{ color: 'var(--text-h)', textDecoration: 'none' }}>Admin: Buyers</Link>
-        <Link to="/login" style={{ color: 'var(--text-h)', textDecoration: 'none' }}>Login</Link>
-        <Link to="/register" style={{ color: 'var(--text-h)', textDecoration: 'none' }}>Join Us</Link>
+        {isLoggedIn ? (
+          <a onClick={handleLogoutClick} style={{ color: 'var(--text-h)', textDecoration: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Logout</a>
+        ) : (
+          <>
+            <Link to="/login" style={{ color: 'var(--text-h)', textDecoration: 'none' }}>Login</Link>
+            <Link to="/register" style={{ color: 'var(--text-h)', textDecoration: 'none' }}>Join Us</Link>
+          </>
+        )}
       </nav>
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

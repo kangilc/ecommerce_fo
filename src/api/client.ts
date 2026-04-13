@@ -15,6 +15,8 @@ export const setAccessToken = (token: string | null) => {
   accessToken = token;
 };
 
+export const getAccessToken = () => accessToken;
+
 // 1. 요청 인터셉터
 client.interceptors.request.use(
   (config) => {
@@ -47,8 +49,9 @@ const handleLogout = () => {
   setAccessToken(null);
   localStorage.removeItem('user_info');
   localStorage.removeItem('refresh_token'); // Refresh Token 삭제
+  window.dispatchEvent(new Event('auth-change'));
   // 강제 로그아웃 시 로그인 페이지로 이동하는 로직 등 추가
-  window.location.href = '/login';
+  window.location.href = '/';
 };
 
 // 2. 응답 인터셉터

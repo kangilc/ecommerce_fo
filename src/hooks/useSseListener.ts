@@ -1,16 +1,20 @@
 import { useEffect } from 'react';
-import { forceLogout } from '../api/client';
+import { forceLogout, getAccessToken } from '../api/client';
 
 /**
  * 백엔드의 SSE(Server-Sent Events) 스트림에 연결하여
  * 실시간 알람(예: Kafka에서 컨슘한 이벤트)을 수신하는 커스텀 훅입니다.
  */
-export const useSseListener = () => {
+export const useSseListener = (isLoggedIn: boolean) => {
   useEffect(() => {
+    // 로그아웃 상태일 때는 SSE 연결을 시도하지 않음
+    if (!isLoggedIn) return;
+
     // 백엔드의 SSE 엔드포인트 URL
-    // (만약 사용자 식별을 위한 param이 필요하다면 ?token=... 식으로 넘길 수 있습니다)
-    const url = `/api/notifications/stream`;
-    const eventSource = new EventSource(url);
+    // (Spring Security 필터 처리를 우회하기 위해 token을 쿼리 파라미터로 붙입니다)
+    const token = getAccessToken();
+    const url = `/api/notifications/subscribe?token=${token}`;
+    const eventSource = new EventSource(url, { withCredentials: true });
 
     eventSource.onopen = () => {
       console.log('SSE 연결이 활성화되었습니다.');
@@ -35,5 +39,6 @@ export const useSseListener = () => {
     return () => {
       eventSource.close();
     };
-  }, []); // 의존성 배열에 사용자 ID 등을 추가하여 연결을 갱신하게 할 수도 있습니다.
+  }, [isLoggedIn]); // 로그인 상태가 바뀔 때마다 실행/종료되도록 의존성 추가
 };
+

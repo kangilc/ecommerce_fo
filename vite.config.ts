@@ -20,6 +20,14 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_PRODUCTS_URL || 'http://localhost:8082',
           changeOrigin: true,
         },
+        '/api/auth': {
+          target: env.VITE_API_AUTH_URL || 'http://localhost:8084',
+          changeOrigin: true,
+        },
+        '/api/notifications': {
+          target: env.VITE_API_NOTIFICATIONS_URL || 'http://localhost:8084', // 실제 알림(SSE) 서버 포트에 맞춰 수정해주세요 (기본 8084로 임시 할당)
+          changeOrigin: true,
+        },
       },
     },
   }
