@@ -17,13 +17,18 @@ import './App.css';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('refresh_token'));
+  const [isSessionReady, setIsSessionReady] = useState(!localStorage.getItem('refresh_token'));
 
   useEffect(() => {
     // 새로고침 시 로컬 스토리지에 refresh_token은 있고 메모리 accessToken은 날아간 상태라면
     // 제품 리스트 등의 API가 401/302를 맞기 전에 미리 1회 복구합니다.
-    import('./api/client').then(({ restoreSession }) => {
-      restoreSession();
-    });
+    if (localStorage.getItem('refresh_token')) {
+      import('./api/client').then(({ restoreSession }) => {
+        restoreSession().finally(() => {
+          setIsSessionReady(true);
+        });
+      });
+    }
 
     const handleAuthChange = () => {
       setIsLoggedIn(!!localStorage.getItem('refresh_token'));
@@ -32,8 +37,8 @@ function App() {
     return () => window.removeEventListener('auth-change', handleAuthChange);
   }, []);
 
-  // 앱 실행 시 SSE 리스너 마운트: 로그인 상태일 때만 실제 커넥션이 맺어지도록 변경
-  useSseListener(isLoggedIn);
+  // 앱 실행 시 SSE 리스너 마운트: 로그인 상태이고 토큰 복구가 끝났을 때 커넥션
+  useSseListener(isLoggedIn && isSessionReady);
 
   const handleLogoutClick = () => {
     forceLogout();
