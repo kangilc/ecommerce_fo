@@ -17,12 +17,31 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = () => accessToken;
 
+// 앱 초기 구동 시, refresh_token은 있지만 accessToken이 메모리에 없을 때 최초 1회 복구하는 함수
+export const restoreSession = async () => {
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (refreshToken && !accessToken) {
+    try {
+      const res = await axios.post('/api/auth/refresh', { refreshToken });
+      const newAccessToken = res.data.accessToken || res.data.data?.accessToken;
+      if (newAccessToken) setAccessToken(newAccessToken);
+    } catch (e) {
+      console.error('세션 복구 실패:', e);
+      handleLogout();
+    }
+  }
+};
+
 // 1. 요청 인터셉터
 client.interceptors.request.use(
   (config) => {
     // 토큰이 있다면 모든 요청의 Authorization에 Bearer로 붙여서 보냄
     if (accessToken && config.headers) {
-      config.headers['Authorization'] = `Bearer ${accessToken}`;
+      if (typeof config.headers.set === 'function') {
+        config.headers.set('Authorization', `Bearer ${accessToken}`);
+      } else {
+        config.headers['Authorization'] = `Bearer ${accessToken}`;
+      }
     }
     return config;
   },
@@ -74,7 +93,11 @@ client.interceptors.response.use(
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
-            originalRequest.headers['Authorization'] = 'Bearer ' + token;
+            if (typeof originalRequest.headers.set === 'function') {
+              originalRequest.headers.set('Authorization', 'Bearer ' + token);
+            } else {
+              originalRequest.headers['Authorization'] = 'Bearer ' + token;
+            }
             return client(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -104,7 +127,11 @@ client.interceptors.response.use(
         processQueue(null, newAccessToken);
         
         // 새로 발급받은 토큰으로 기존 401에러 났던 요청 재실행
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        if (typeof originalRequest.headers.set === 'function') {
+          originalRequest.headers.set('Authorization', `Bearer ${newAccessToken}`);
+        } else {
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        }
         return client(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);

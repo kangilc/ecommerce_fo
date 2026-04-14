@@ -19,6 +19,12 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('refresh_token'));
 
   useEffect(() => {
+    // 새로고침 시 로컬 스토리지에 refresh_token은 있고 메모리 accessToken은 날아간 상태라면
+    // 제품 리스트 등의 API가 401/302를 맞기 전에 미리 1회 복구합니다.
+    import('./api/client').then(({ restoreSession }) => {
+      restoreSession();
+    });
+
     const handleAuthChange = () => {
       setIsLoggedIn(!!localStorage.getItem('refresh_token'));
     };
