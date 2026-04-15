@@ -112,24 +112,24 @@
 }
 
 /* CP Product Grid */
-.cp-product-grid {
+.jf-product-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 15px;
 }
 
-.cp-product-card {
+.jf-product-card {
   background-color: white;
   border: 1px solid var(--border-light);
   transition: box-shadow 0.2s;
   cursor: pointer;
 }
 
-.cp-product-card:hover {
+.jf-product-card:hover {
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.cp-product-image {
+.jf-product-image {
   position: relative;
   width: 100%;
   padding-top: 100%; /* 1:1 Aspect Ratio */
@@ -174,7 +174,7 @@
   font-size: 18px;
 }
 
-.cp-product-info {
+.jf-product-info {
   padding: 15px;
   display: flex;
   flex-direction: column;

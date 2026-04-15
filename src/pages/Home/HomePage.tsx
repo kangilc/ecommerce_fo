@@ -97,10 +97,10 @@ const HomePage: React.FC = () => {
           <h2>Rocket Delivery Products</h2>
           <span className="see-all">See All {'>'}</span>
         </div>
-        <div className="cp-product-grid">
+        <div className="jf-product-grid">
           {products.map((product) => (
-            <div key={product.id} className="cp-product-card" onClick={() => navigate(`/products/${product.id}`)}>
-              <div className="cp-product-image">
+            <div key={product.id} className="jf-product-card" onClick={() => navigate(`/products/${product.id}`)}>
+              <div className="jf-product-image">
                 <div className="image-box">
                   {/* <img src="..." alt={product.name} /> */}
                 </div>
@@ -111,7 +111,7 @@ const HomePage: React.FC = () => {
                   <div className="sold-out-overlay">Sold Out</div>
                 )}
               </div>
-              <div className="cp-product-info">
+              <div className="jf-product-info">
                 <div className="product-name">{product.name}</div>
                 <div className="price-area">
                   <span className="discount-rate">15%</span>

@@ -37,7 +37,7 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLogout }) => {
       <div className="header-main">
         <div className="container header-main-content">
           <div className="logo-section" onClick={() => navigate('/')}>
-            <div className="logo-placeholder">COUPANG</div>
+            <div className="logo-placeholder">JAVAF</div>
           </div>
 
           <div className="category-btn">

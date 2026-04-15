@@ -77,8 +77,8 @@ function App() {
         marginTop: '40px'
       }}>
         <div className="container" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-          <p>© 2026 Coupang. All rights reserved.</p>
-          <p style={{ marginTop: '10px' }}>This is a demo application inspired by Coupang.</p>
+          <p>© 2026 Javaf. All rights reserved.</p>
+          <p style={{ marginTop: '10px' }}>This is a demo application inspired by Javaf.</p>
         </div>
       </footer>
     </Router>
