@@ -28,7 +28,6 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleBuy = async (product: ProductResponse) => {
-    // 1. 로그인 여부 체크
     const isLoggedIn = !!localStorage.getItem('refresh_token');
     
     if (!isLoggedIn) {
@@ -38,11 +37,9 @@ const HomePage: React.FC = () => {
       return;
     }
 
-    // 2. 로그인된 상태라면 주문 진행
     try {
-      // 로컬 스토리지에 저장된 유저 정보 파싱 (로그인 시 저장해둔 정보)
       const userInfoStr = localStorage.getItem('user_info');
-      let currentBuyerId = 1; // Default fallback fallback
+      let currentBuyerId = 1;
       
       if (userInfoStr) {
         try {
@@ -58,8 +55,6 @@ const HomePage: React.FC = () => {
         amount: product.price 
       });
       alert(`${product.name} 주문이 성공적으로 완료되었습니다!`);
-
-      // 주문 완료 후 백엔드의 정확한 최신 데이터(재고수량)를 불러오기 위해 화면을 가리지 않게 (silent) 리프레시 진행
       await fetchProducts(false);
     } catch (e: any) {
       console.error(e);
@@ -67,36 +62,87 @@ const HomePage: React.FC = () => {
     }
   };
 
-  if (loading) return <section id="center"><div>Loading latest products...</div></section>;
-  if (error) return <section id="center"><div className="error-message">{error}</div></section>;
+  if (loading) return <div className="loading-state">Loading latest products...</div>;
+  if (error) return <div className="error-state">{error}</div>;
 
   return (
-    <div className="home-page">
-      <section className="hero-banner">
-        <h1>Premium E-Commerce Store</h1>
-        <p>Discover our amazing products with the best prices.</p>
+    <div className="home-content">
+      {/* Hero Banner Area */}
+      <section className="main-banner">
+        <div className="banner-slide">
+          <div className="banner-text">
+            <h2>Today's Specials</h2>
+            <p>Up to 50% off on electronics!</p>
+            <button className="banner-btn">Shop Now</button>
+          </div>
+          <div className="banner-image-placeholder">
+            {/* Image would go here */}
+          </div>
+        </div>
       </section>
 
-      <div className="product-grid">
-        {products.map((product) => (
-          <div key={product.id} className="product-card">
-            <div className="product-image-placeholder">
-              <span className="stock-badge">{product.stockQuantity > 0 ? `In Stock: ${product.stockQuantity}` : 'Out of Stock'}</span>
-            </div>
-            <div className="product-info">
-              <h3>{product.name}</h3>
-              <p className="product-price">{product.price.toLocaleString()} KRW</p>
-              <button 
-                className="buy-button" 
-                onClick={() => handleBuy(product)}
-                disabled={product.stockQuantity <= 0}
-              >
-                {product.stockQuantity > 0 ? 'Buy Now' : 'Sold Out'}
-              </button>
-            </div>
+      {/* Quick Links / Categories */}
+      <section className="quick-categories">
+        {['Electronics', 'Fashion', 'Beauty', 'Food', 'Home', 'Books', 'Sports', 'Toys'].map(cat => (
+          <div key={cat} className="category-item">
+            <div className="category-icon-placeholder">{cat[0]}</div>
+            <span>{cat}</span>
           </div>
         ))}
-      </div>
+      </section>
+
+      {/* Product List Section */}
+      <section className="product-section">
+        <div className="section-header">
+          <h2>Rocket Delivery Products</h2>
+          <span className="see-all">See All {'>'}</span>
+        </div>
+        <div className="cp-product-grid">
+          {products.map((product) => (
+            <div key={product.id} className="cp-product-card" onClick={() => navigate(`/products/${product.id}`)}>
+              <div className="cp-product-image">
+                <div className="image-box">
+                  {/* <img src="..." alt={product.name} /> */}
+                </div>
+                {product.stockQuantity < 5 && product.stockQuantity > 0 && (
+                  <span className="stock-warning">Only {product.stockQuantity} left!</span>
+                )}
+                {product.stockQuantity === 0 && (
+                  <div className="sold-out-overlay">Sold Out</div>
+                )}
+              </div>
+              <div className="cp-product-info">
+                <div className="product-name">{product.name}</div>
+                <div className="price-area">
+                  <span className="discount-rate">15%</span>
+                  <span className="price-value">{(product.price * 0.85).toLocaleString()}</span>
+                  <span className="currency">원</span>
+                </div>
+                <div className="original-price">{product.price.toLocaleString()}원</div>
+                <div className="delivery-badge">
+                  <span className="rocket-icon">🚀</span>
+                  <span className="rocket-text">로켓배송</span>
+                  <span className="arrival-date">내일(목) 도착 보장</span>
+                </div>
+                <div className="rating-area">
+                  <span className="stars">★★★★☆</span>
+                  <span className="review-count">(1,234)</span>
+                </div>
+                <button 
+                  className="quick-buy-btn" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBuy(product);
+                  }}
+                  disabled={product.stockQuantity <= 0}
+                >
+                  {product.stockQuantity > 0 ? 'Quick Buy' : 'Sold Out'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };
