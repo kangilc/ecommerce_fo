@@ -1,0 +1,328 @@
+좋습니다.  
+아래는 요청하신 **4가지 주제**를 **실거래소 기준으로 “코드·스키마·아키텍처 관점”에서**  
+👉 **앞에서 설명한 구조와 정확히 맞물리도록**  
+👉 **처음부터 끝까지 순서대로** 정리한 답변입니다.
+
+***
+
+# 1️⃣ 매칭 엔진 코드 수준 Pseudo / Skeleton
+
+> 목표: **가격 우선 → 시간 우선**을 깨지지 않게 보장하면서  
+> **Race Condition 없이 초고속 매칭**
+
+***
+
+## 1.1 기본 구조 (1종목 = 1엔진 = 1스레드)
+
+```java
+class MatchingEngine implements Runnable {
+
+    private final String symbol;
+    private final OrderBook orderBook;
+    private final BlockingQueue<OrderCommand> queue;
+
+    public void run() {
+        while (true) {
+            OrderCommand cmd = queue.take();
+            handle(cmd);
+        }
+    }
+}
+```
+
+### 핵심
+
+*   **동시성 제어 ❌** (락 없음)
+*   **큐 + 단일 스레드 = 절대적 순서 보장**
+
+***
+
+## 1.2 OrderBook 구조 (Price-Time Priority)
+
+```java
+class OrderBook {
+    NavigableMap<BigDecimal, Deque<Order>> bids; // DESC
+    NavigableMap<BigDecimal, Deque<Order>> asks; // ASC
+}
+```
+
+*   `Price → Queue<Order>`
+*   Queue = FIFO → **시간 우선**
+
+***
+
+## 1.3 주문 처리 루프 (Pseudo)
+
+```java
+void handle(NewOrder order) {
+    if (order.isBuy()) {
+        matchBuy(order);
+    } else {
+        matchSell(order);
+    }
+}
+```
+
+```java
+void matchBuy(Order buy) {
+    while (buy.qty > 0) {
+        BestAsk ask = orderBook.bestAsk();
+        if (ask.price > buy.price) break;
+
+        Trade trade = execute(buy, ask);
+        emitTrade(trade);
+        emitOrderBookDelta(ask.price, -trade.qty);
+    }
+}
+```
+
+✅ **가격 우선 → 시간 우선**이 자동으로 보장됨
+
+***
+
+## 1.4 반드시 지켜야 할 불변식
+
+*   하나의 OrderBook은 **절대 동시에 접근하지 않는다**
+*   DB ✅❌ **절대 쓰지 않는다**
+*   Kafka 생산자는 **엔진 바깥이 아닌, 엔진 내부에서 실행**
+
+***
+
+# 2️⃣ OrderBook 압축 / Delta 스키마 설계
+
+> UI에서 **전체 오더북 재전송은 절대 금물**
+
+***
+
+## 2.1 왜 Delta가 필수인가?
+
+| 방식               | 문제       |
+| ---------------- | -------- |
+| Full Snapshot 매번 | 트래픽 폭발   |
+| Delta 기반         | ✅ 최소 데이터 |
+
+***
+
+## 2.2 내부 상태 vs 외부 전송 포맷 구분
+
+### 내부
+
+```java
+Map<Price, TotalQty>
+```
+
+### 외부 Kafka / WS
+
+```json
+DELTA Event
+```
+
+***
+
+## 2.3 Delta 이벤트 스키마 (정석)
+
+```json
+{
+  "type": "ORDERBOOK_DELTA",
+  "symbol": "BTC-USD",
+  "side": "BUY",
+  "price": "65000.0",
+  "deltaQty": "-0.5",
+  "seq": 102345,
+  "ts": 1713160000123
+}
+```
+
+### 필수 이유
+
+*   `deltaQty = +/-`
+*   `seq` → 순서 검증
+*   `ts` → 동기화 기준
+
+***
+
+## 2.4 Snapshot 이벤트 (초기/복구)
+
+```json
+{
+  "type": "SNAPSHOT",
+  "symbol": "BTC-USD",
+  "bids": [[65000, 1.2], [64990, 0.8]],
+  "asks": [[65010, 0.5], [65020, 1.0]],
+  "seq": 102300
+}
+```
+
+***
+
+## 2.5 UI 적용 규칙 (중요)
+
+*   `seq` 누락 / 역전 → **즉시 Snapshot 재요청**
+*   Delta는 Snapshot 이후만 적용
+
+***
+
+# 3️⃣ 초고빈도 종목 Scale‑out 전략
+
+> BTC‑USD 같은 **핫 종목은 단일 엔진으로는 한계**
+
+***
+
+## 3.1 기본 전략: Symbol‑Shard
+
+```text
+BTC-USD-0
+BTC-USD-1
+BTC-USD-2
+```
+
+*   주문은 **hash(orderId or userId)**
+*   각 shard는 독립 엔진
+
+***
+
+## 3.2 오더북 분할 방식
+
+| 방식                | 설명     |
+| ----------------- | ------ |
+| Price Range Shard | 가격 구간별 |
+| Time Slice Shard  | 시간 기준  |
+| ❌ User Shard      | 공정성 깨짐 |
+
+✅ 대부분 **Price Range Shard** 사용
+
+***
+
+## 3.3 Market Data 재조합
+
+```text
+Shard A Δ
+Shard B Δ
+Shard C Δ
+  ↓
+Market Data Aggregator
+  ↓
+Unified OrderBook Stream
+```
+
+***
+
+## 3.4 Kafka 파티션 전략
+
+```text
+Topic: orderbook-events-btc
+Partitions: 3
+Key: shardId
+```
+
+✅ 파티션 == 엔진 인스턴스
+
+***
+
+# 4️⃣ 클러스터 장애 시 Failover 구조
+
+> 실거래소에서 **가장 중요한 부분**
+
+***
+
+## 4.1 장애 유형
+
+| 장애       | 영향       |
+| -------- | -------- |
+| 엔진 죽음    | 거래 중단    |
+| WS 서버 죽음 | UI 갱신 중단 |
+| Kafka 장애 | 확산 위험    |
+
+***
+
+## 4.2 Matching Engine 장애 대응
+
+### ✅ 기본 원칙
+
+*   엔진 상태 = **Kafka 이벤트 로그 + Snapshot**
+
+***
+
+### 복구 시나리오
+
+    1. 엔진 재기동
+    2. 마지막 Snapshot 로딩
+    3. Kafka offset부터 replay
+    4. 상태 완전 복구
+
+✅ 이벤트 소싱 패턴
+
+***
+
+## 4.3 WebSocket 서버 장애
+
+*   WS 서버는 **Stateless**
+*   재연결 시:
+    *   최신 Snapshot 전달
+    *   이후 Delta
+
+👉 사용자 체감 무중단
+
+***
+
+## 4.4 중복 이벤트 방지 (Idempotency)
+
+```text
+eventId
+or seq
+```
+
+*   이미 처리된 `seq` 이하 무시
+*   **Exactly Once ❌**
+*   **At Least Once + Idempotent ✅**
+
+***
+
+## 4.5 Split‑Brain 방지 (중요)
+
+*   엔진 마스터는 **Zookeeper / Etcd / Redis Lock**
+*   동시에 2개 엔진 활성 ❌
+
+```text
+BTC-USD master = engine-03
+```
+
+***
+
+# ✅ 최종 핵심 정리
+
+> **실거래소의 본질은 기술이 아니라 “불변식 유지”다**
+
+### 반드시 지켜야 할 4대 원칙
+
+1.  ✅ **단일 스레드 + 가격/시간 우선**
+2.  ✅ **Delta 기반 이벤트 스트림**
+3.  ✅ **Kafka로 순서·재처리 확보**
+4.  ✅ **Snapshot + Replay로 장애 복구**
+
+***
+
+## ✅ 당신의 현재 스택 적합성
+
+| 항목           | 적합 여부 |
+| ------------ | ----- |
+| Spring / JVM | ✅     |
+| Kafka        | ✅✅    |
+| Redis        | ✅     |
+| WebSocket    | ✅     |
+| ELK          | ✅     |
+
+👉 **이미 70% 이상 준비된 상태**
+
+***
+
+## 🔜 다음 심화 주제 (선택)
+
+원하시면 다음으로 바로 들어갈 수 있습니다:
+
+*   🔥 실제 **엔진 코드 수준 Skeleton 구현**
+*   🔥 오더북 메모리 최적화 전략
+*   🔥 HFT(초저지연) 대응 JVM 튜닝
+*   🔥 거래소 보안/프론트러닝 방지 설계
+
+어디까지 **실제 구현 수준으로** 가보고 싶으신가요?
