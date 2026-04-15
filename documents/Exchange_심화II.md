@@ -77,6 +77,16 @@ void matchBuy(Order buy) {
 ```
 
 ✅ **가격 우선 → 시간 우선**이 자동으로 보장됨
+1. 가격 우선 (Price Priority) 보장
+orderBook.bestAsk(): 이 메서드가 항상 가장 낮은 가격(최우선 매도호가)을 먼저 반환하도록 설계되어 있습니다.
+if (ask.price > buy.price) break;: 내가 사려는 가격(buy.price)보다 싼 물량이 있을 때만 루프가 돌기 때문에, 시장에서 가장 유리한 가격부터 차례대로 체결됩니다.
+2. 시간 우선 (Time Priority) 보장
+BestAsk ask 내부의 데이터 구조(보통 Queue) 덕분입니다. 동일한 가격의 매도 주문들이 있다면, orderBook은 그중 먼저 들어온 주문을 bestAsk로 먼저 내보냅니다.
+while 루프는 그 순서대로 하나씩 꺼내어 execute를 호출하므로 자연스럽게 시간 순서가 지켜집니다.
+3. 실무적 고려사항 (Tip)
+이 루프를 실제 시스템으로 확장할 때 보통 다음 두 가지를 추가로 처리합니다.
+부분 체결 (Partial Fill): ask.qty가 buy.qty보다 클 경우, ask 주문의 잔량을 업데이트하고 루프를 종료하는 처리가 execute 내부에 포함되어야 합니다.
+완전 체결 시 제거: ask.qty를 모두 소모하면 해당 주문을 호가창(Order Book)에서 완전히 삭제하는 로직이 뒤따릅니다.
 
 ***
 
