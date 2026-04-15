@@ -40,8 +40,15 @@ function App() {
   // 앱 실행 시 SSE 리스너 마운트: 로그인 상태이고 토큰 복구가 끝났을 때 커넥션
   useSseListener(isLoggedIn && isSessionReady);
 
-  const handleLogoutClick = () => {
-    forceLogout();
+  const handleLogoutClick = async () => {
+    try {
+      // 서버에 로그아웃을 알려 Kafka 이벤트를 발생시키고 다른 세션에 브로드캐스팅하게 함
+      await import('./api/auth').then(({ logout }) => logout());
+    } catch (err) {
+      console.error('Logout failed:', err);
+    } finally {
+      forceLogout();
+    }
   };
 
   return (

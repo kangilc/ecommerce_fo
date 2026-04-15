@@ -70,7 +70,7 @@ const handleLogout = () => {
   localStorage.removeItem('refresh_token'); // Refresh Token 삭제
   window.dispatchEvent(new Event('auth-change'));
   // 강제 로그아웃 시 로그인 페이지로 이동하는 로직 등 추가
-  window.location.href = '/';
+  // window.location.href = '/';
 };
 
 // 2. 응답 인터셉터
