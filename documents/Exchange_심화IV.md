@@ -56,20 +56,57 @@ public class Order {
 ## 1.3 OrderBook (Price–Time)
 
 ```java
+/**
+ * OrderBook
+ *
+ * 매수(BUY) / 매도(SELL) 주문을 가격 단위로 관리하는 오더북
+ * - 가격 우선(Price Priority)
+ * - 동일 가격 내 시간 우선(Time Priority, FIFO)
+ */
 public final class OrderBook {
 
-    // BUY: high → low
+    /**
+     * 매수 오더북 (BIDS)
+     * - Key   : 가격 (Long)
+     * - Value : 해당 가격의 주문 큐 (FIFO)
+     *
+     * 정렬 기준
+     * - 높은 가격이 우선 체결되어야 하므로 내림차순 정렬
+     *   (ex: 65000 → 64999 → 64998)
+     */
     final NavigableMap<Long, ArrayDeque<Order>> bids =
-        new TreeMap<>(Comparator.reverseOrder());
+            new TreeMap<>(Comparator.reverseOrder());
 
-    // SELL: low → high
+    /**
+     * 매도 오더북 (ASKS)
+     * - Key   : 가격 (Long)
+     * - Value : 해당 가격의 주문 큐 (FIFO)
+     *
+     * 정렬 기준
+     * - 낮은 가격이 우선 체결되어야 하므로 오름차순 정렬
+     *   (ex: 65001 → 65002 → 65003)
+     */
     final NavigableMap<Long, ArrayDeque<Order>> asks =
-        new TreeMap<>();
+            new TreeMap<>();
 
+    /**
+     * 주문을 오더북에 추가
+     *
+     * @param side  주문 방향 (BUY / SELL)
+     * @param order 주문 정보
+     */
     public void add(Side side, Order order) {
-        var book = side == Side.BUY ? bids : asks;
+
+        // 주문 방향에 따라 매수/매도 오더북 선택
+        var book = (side == Side.BUY) ? bids : asks;
+
+        // 해당 가격 레벨이 없으면 새 큐(ArrayDeque) 생성
+        // 이미 있으면 기존 큐 반환
         book.computeIfAbsent(order.price, k -> new ArrayDeque<>())
-            .addLast(order); // FIFO
+
+                // 동일 가격 내에서는 FIFO 원칙을 지키기 위해
+                // 큐의 맨 뒤에 주문 추가
+                .addLast(order);
     }
 }
 ```
