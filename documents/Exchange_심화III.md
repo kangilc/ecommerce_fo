@@ -86,29 +86,79 @@ void process(NewOrder order) {
 ```
 
 ```java
+/**
+ * 매수 주문(Buy Order)을 기존 매도 오더북(asks)과 매칭하는 로직
+ * - 가격 우선 → 시간 우선 원칙을 따름
+ */
 void matchBuy(Order buy) {
+
+    // 매수 주문에 남은 수량이 있는 동안 반복
     while (buy.qty > 0) {
+
+        // 현재 매도 오더북에서 가장 좋은 가격(최저가) 조회
         var bestAsk = asks.firstEntry();
+
+        // 매도 호가가 없거나,
+        // 최저 매도가가 매수 희망가보다 비싸면 더 이상 체결 불가 → 종료
         if (bestAsk == null || bestAsk.price > buy.price) break;
 
+        // 해당 가격 레벨에서 가장 먼저 들어온(시간 우선) 매도 주문 조회
         var resting = bestAsk.queue.peek();
+
+        // 실제 체결 수량 = 매수 잔량과 매도 잔량 중 작은 값
         long traded = Math.min(buy.qty, resting.qty);
 
+        // 체결 수량만큼 매수/매도 주문 잔량 차감
         buy.qty -= traded;
         resting.qty -= traded;
 
+        // 체결 이벤트 발생 (체결가·수량 기록/전파)
         emitTrade(traded);
 
-        if (resting.qty == 0) bestAsk.queue.poll();
-        if (bestAsk.queue.isEmpty()) asks.remove(bestAsk.price);
+        // 매도 주문이 전량 체결되었으면 큐에서 제거
+        if (resting.qty == 0) {
+            bestAsk.queue.poll();
+        }
+
+        // 해당 가격 레벨에 더 이상 주문이 없으면 가격 레벨 자체 제거
+        if (bestAsk.queue.isEmpty()) {
+            asks.remove(bestAsk.price);
+        }
     }
 
-    if (buy.qty > 0) addToBidBook(buy);
+    // 모든 매도 호가와 매칭 후에도 매수 잔량이 남아 있으면
+    // 매수 오더북(bids)에 잔량 주문으로 등록
+    if (buy.qty > 0) {
+        addToBidBook(buy);
+    }
 }
 ```
-
 ✅ **가격 → 시간 → 수량 소진**  
 ✅ 분기 없음, 락 없음
+
+***
+
+### ✅ 이 코드의 핵심 포인트 요약
+
+*   **Price Priority (가격 우선)**  
+    → `asks.firstEntry()` : 가장 싼 매도부터 체결
+
+*   **Time Priority (시간 우선)**  
+    → `queue.peek()` : 같은 가격에서는 먼저 들어온 주문부터 체결
+
+*   **Partial Fill 처리**  
+    → `Math.min(buy.qty, resting.qty)`
+
+*   **정석 구조**
+    *   전량 체결 → 제거
+    *   잔량 존재 → 오더북에 적재
+
+***
+
+### ✅ 한 줄 정리
+
+> 이 메서드는 **매수 주문을 최저 매도 호가부터 차례대로 소진시키고,  
+> 남은 수량은 매수 오더북에 적재하는 전형적인 거래소 매칭 로직**이다.
 
 ***
 
