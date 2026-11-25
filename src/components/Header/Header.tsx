@@ -16,10 +16,11 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLogout }) => {
       <div className="header-top">
         <div className="container header-top-content">
           <ul className="utility-menu">
+            <li><Link to="/products">Products</Link></li>
+            <li><Link to="/products/new">AI Product Register</Link></li>
             {isLoggedIn ? (
               <>
                 <li onClick={onLogout} className="clickable">Logout</li>
-                <li><Link to="/products">Admin: Products</Link></li>
                 <li><Link to="/buyers">Admin: Buyers</Link></li>
               </>
             ) : (
