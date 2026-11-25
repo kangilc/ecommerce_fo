@@ -14,5 +14,160 @@
   font-size: 1.1rem;
 }
 
-/* Reusing generic list/detail styles from BuyerPage.css if needed, 
-   but specific product tweaks go here */
+.product-description-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.08);
+  text-align: left;
+}
+
+.product-description-box p {
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.ai-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.ai-tag-chip {
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ai-panel {
+  border: 1px solid rgba(100, 108, 255, 0.35);
+  border-radius: 10px;
+  padding: 1rem;
+  background: rgba(100, 108, 255, 0.05);
+  text-align: left;
+}
+
+.ai-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.ai-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.ai-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.ai-action-button {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: #4f46e5;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ai-action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-highlights {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.ai-highlights-title {
+  font-weight: 600;
+}
+
+.ai-highlights ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.ai-quick-questions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ai-chip-button {
+  font-size: 0.8rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(100, 108, 255, 0.4);
+  background: transparent;
+  cursor: pointer;
+}
+
+.ai-reset-button {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  background: transparent;
+  cursor: pointer;
+}
+
+.ai-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 0.75rem;
+}
+
+.ai-chat-bubble {
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.1);
+}
+
+.ai-chat-bubble p {
+  margin: 0.25rem 0 0;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.ai-chat-user {
+  background: var(--accent-bg);
+}
+
+.ai-chat-role {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.ai-qa-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ai-qa-form input {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+}

@@ -40,6 +40,13 @@ src/
   - 백엔드(`POST /api/users`) 연동을 통한 회원 정보 저장
   - 성공/실패에 따른 사용자 피드백(메시지) 표시
 
+### 2. 상품 관리 및 Gemini AI 어시스턴트 (`ecommerce` / `shop-product` 연동)
+- **상품 등록/수정 (`/products/new`, `/products/:id/edit`)**
+  - `ProductAiCopyHelper` + `ProductFormFields`: 상품명·가격·강조 키워드·톤앤매너를 입력해 `POST /api/products/ai/generate-copy`를 호출하면 Gemini AI(`gemini-4-hydrogen`)가 생성한 상품 설명(`description`), 핵심 포인트(`highlights`), 검색 태그(`tags`)를 폼에 자동 반영합니다.
+- **상품 상세 및 AI Q&A (`/products/:id`)**
+  - 저장된 상품 설명(`description`)과 태그(`tags`)를 표시합니다.
+  - `ProductAiQaBox`: 빠른 질문 칩과 자유 입력으로 `POST /api/products/{id}/ai/qa`를 호출하며, `previousInteractionId`를 유지해 연속 대화를 지원합니다.
+
 ## ⚙️ 설정 및 백엔드 연동
 
 ### 백엔드 프록시 설정

@@ -57,15 +57,14 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/products" element={<ProductListPage />} />
+          <Route path="/products/new" element={<ProductRegisterPage />} />
+          <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route path="/products/:id/edit" element={<ProductEditPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/buyers" element={<BuyerListPage />} />
             <Route path="/buyers/:id" element={<BuyerDetailPage />} />
             <Route path="/buyers/:id/edit" element={<BuyerEditPage />} />
-            
-            <Route path="/products" element={<ProductListPage />} />
-            <Route path="/products/new" element={<ProductRegisterPage />} />
-            <Route path="/products/:id" element={<ProductDetailPage />} />
-            <Route path="/products/:id/edit" element={<ProductEditPage />} />
           </Route>
         </Routes>
       </main>

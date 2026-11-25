@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { findProductById, updateProduct } from '../../api/product';
+import { extractApiErrorMessage, findProductById, updateProduct } from '../../api/product';
+import ProductFormFields from '../../components/Product/ProductFormFields';
 import type { ProductRequest } from '../../types/product';
 import './ProductPage.css';
 
@@ -12,6 +13,8 @@ const ProductEditPage: React.FC = () => {
     price: 0,
     stockQuantity: 0,
     sellerId: 1,
+    description: '',
+    tags: [],
   });
 
   const [loading, setLoading] = useState(true);
@@ -28,23 +31,17 @@ const ProductEditPage: React.FC = () => {
           price: data.price,
           stockQuantity: data.stockQuantity,
           sellerId: data.sellerId,
+          description: data.description ?? '',
+          tags: data.tags ?? [],
         });
-      } catch (err: any) {
-        setError('Failed to fetch product details for editing');
+      } catch (err: unknown) {
+        setError(extractApiErrorMessage(err, 'Failed to fetch product details for editing'));
       } finally {
         setLoading(false);
       }
     };
     fetchProduct();
   }, [id]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'name' ? value : Number(value),
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,8 +52,8 @@ const ProductEditPage: React.FC = () => {
     try {
       await updateProduct(id, formData);
       navigate(`/products/${id}`);
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to update product');
+    } catch (err: unknown) {
+      setError(extractApiErrorMessage(err, 'Failed to update product'));
     } finally {
       setSaving(false);
     }
@@ -69,23 +66,8 @@ const ProductEditPage: React.FC = () => {
       <div className="edit-container detail-container">
         <h2>Edit Product Info</h2>
         <form onSubmit={handleSubmit} className="register-form">
-          <div className="form-group">
-            <label htmlFor="name">Product Name</label>
-            <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required />
-          </div>
-          <div className="form-group">
-            <label htmlFor="price">Price (KRW)</label>
-            <input type="number" id="price" name="price" value={formData.price} onChange={handleChange} required min="0" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="stockQuantity">Stock Quantity</label>
-            <input type="number" id="stockQuantity" name="stockQuantity" value={formData.stockQuantity} onChange={handleChange} required min="0" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="sellerId">Seller ID</label>
-            <input type="number" id="sellerId" name="sellerId" value={formData.sellerId} onChange={handleChange} required min="1" />
-          </div>
-          
+          <ProductFormFields formData={formData} onChange={setFormData} />
+
           <div className="form-actions" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <button type="submit" className="register-button" disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
